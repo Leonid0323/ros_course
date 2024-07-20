@@ -37,7 +37,10 @@ double LineControl::cross_track_err_line()
     return line_y - y;
 }
 
-
+double LineControl::cross_track_err_line1()
+{
+    return line_y1 - y;
+}
 
 double LineControl::cross_track_err_circle()
 {
@@ -46,6 +49,15 @@ double LineControl::cross_track_err_circle()
     double e = sqrt(dx*dx + dy*dy) - R;
     return  e;
 }
+
+double LineControl::cross_track_err_circle1()
+{
+    double dx = cx1 - x;
+    double dy = cy1 - y;
+    double e = sqrt(dx*dx + dy*dy) - R;
+    return  e;
+}
+
 
 void LineControl::publish_error(double e)
 {
@@ -66,7 +78,31 @@ void LineControl::timerCallback(const ros::TimerEvent&)
     if ( !obstacle )
     {
         //  вычислим текущую ошибку управления
-        double err = cross_track_err_line();
+        double err;
+        int znak = 1;
+        if(x > 0)
+        {
+            err = cross_track_err_circle();
+        }
+
+        if(x <= 0 && y < 0 && x > -12)
+        {
+            err = cross_track_err_line();
+        }
+        if(x <= 0 && y > 0 && x > -12)
+        {
+            err = cross_track_err_line1();
+            znak = -1;
+        }
+        if(x <= -12)
+        {
+            err = cross_track_err_circle1();
+            znak = 1;
+        }
+
+
+
+
         //  публикация текущей ошибки
         publish_error(err);
         //  интегрируем ошибку
@@ -77,7 +113,7 @@ void LineControl::timerCallback(const ros::TimerEvent&)
         old_error = err;
         cmd.linear.x = task_vel;
         //  ПИД регулятор угловой скорости w = k*err + k_и * инт_err + k_д * дифф_err
-        cmd.angular.z = prop_factor * err + int_factor*int_error + diff_error * diff_factor;
+        cmd.angular.z = znak*(prop_factor * err + int_factor*int_error + diff_error * diff_factor);
         ROS_DEBUG_STREAM("error = "<<err<<" cmd v="<<cmd.linear.x<<" w = "<<cmd.angular.z);
     }
     //  отправляем (публикуем) команду
@@ -92,9 +128,12 @@ LineControl::LineControl():
 {
     ROS_INFO_STREAM("LineControl initialisation");
     //  читаем параметры
-    line_y = node.param("line_y", -10.0);
-    cx = node.param("cx", -6);
+    line_y = node.param("line_y", -6.0);
+    line_y1 = node.param("line_y1", 6.0);
+    cx = node.param("cx", 0);
     cy = node.param("cy", 0);
+    cx1 = node.param("cx1", -12);
+    cy1 = node.param("cy1", 0);
     R = node.param("R", 6);
     task_vel = node.param("task_vel", 1.0);
     prop_factor = node.param("prop_factor", 0.1);

@@ -14,6 +14,9 @@ private:
     double cross_track_err_line();
     //функция вычисления ошибки управления для движения вдоль окружности
     double cross_track_err_circle();
+    double cross_track_err_oval();
+    double cross_track_err_line1();
+    double cross_track_err_circle1();
     /**
      * Функция, которая будет вызвана
      * при получении данных от лазерного дальномера
@@ -34,7 +37,8 @@ private:
  private:
     // заданная координата линии, вдоль которой должен двигаться робот
     double line_y;
-    double cx, cy, R;
+    double line_y1;
+    double cx, cy, R, cx1, cy1;
     // заданная скорость движения
     double task_vel;
     // пропрциональный коэффициент регулятора обратной связи

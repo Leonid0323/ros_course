@@ -29,7 +29,9 @@ add_executable(control_selector
              src/dummy_control.cpp
              src/voyagercontrol.h
              src/voyagercontrol.cpp
-                                )
+             src/notsodummy.h
+	     src/notsodummy.cpp
+                                   )
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(control_selector
